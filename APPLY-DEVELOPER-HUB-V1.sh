@@ -29,10 +29,13 @@ p.write_text(s.replace(old, new, 1), encoding="utf-8")
 PY
 
 php -l "$PLUGIN_DIR/tamiyouz-developer-hub.php"
-node --check "$PLUGIN_DIR/assets/admin.js" >/dev/null 2>&1 || {
-  echo "ERROR: JavaScript syntax validation failed" >&2
-  exit 3
-}
+
+if command -v node >/dev/null 2>&1; then
+  node --check "$PLUGIN_DIR/assets/admin.js" >/dev/null
+  JS_CHECK="PASS"
+else
+  JS_CHECK="SKIPPED_NO_NODE"
+fi
 
 if command -v wp >/dev/null 2>&1; then
   (cd "$WP_ROOT" && wp plugin activate tamiyouz-developer-hub --quiet) || true
@@ -40,7 +43,7 @@ fi
 
 echo "PLUGIN_PATH=$PLUGIN_DIR"
 echo "PHP_LINT=PASS"
-echo "JS_CHECK=PASS"
+echo "JS_CHECK=$JS_CHECK"
 echo "STRICT_REMOTE_FETCH=YES"
 echo "FRONT_END_CHANGED=NO"
 echo "GIT_INITIALIZED_BY_PATCH=NO"

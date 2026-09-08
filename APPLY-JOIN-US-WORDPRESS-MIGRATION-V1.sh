@@ -95,6 +95,7 @@ command -v curl >/dev/null 2>&1 || die "curl is required."
 INDEX_BYTES="$(stat -c %s "$LEGACY_DIR/index.html")"
 VIDEO_BYTES="$(stat -c %s "$LEGACY_DIR/video-header.mp4")"
 TOTAL_BYTES=$((INDEX_BYTES + VIDEO_BYTES))
+FULL_DIR_BYTES="$(du -sb "$LEGACY_DIR" | awk '{print $1}')"
 [[ "$INDEX_BYTES" -gt 35000 ]] || die "index.html is unexpectedly small: $INDEX_BYTES bytes"
 [[ "$VIDEO_BYTES" -gt 500000 ]] || die "video-header.mp4 is unexpectedly small: $VIDEO_BYTES bytes"
 
@@ -121,7 +122,7 @@ if [[ -f "$VIDEO_FILE" ]]; then
 fi
 
 # Find or create the WP page. Do not alter page content; the custom template owns rendering.
-PAGE_ID="$(wp --path="$WP_ROOT" post list --post_type=page --name=join-us --post_status=any --field=ID --format=ids | awk '{print $1}')"
+PAGE_ID="$(wp --path="$WP_ROOT" post list --post_type=page --name=join-us --post_status=any --format=ids | awk '{print $1}')"
 if [[ -n "$PAGE_ID" ]]; then
   wp --path="$WP_ROOT" post get "$PAGE_ID" --fields=ID,post_title,post_name,post_status,post_modified --format=json > "$PAGE_BACKUP"
   wp --path="$WP_ROOT" post meta list "$PAGE_ID" --format=json > "$META_BACKUP"
@@ -202,6 +203,7 @@ printf '%s\n' \
   "LEGACY_INDEX_BYTES=$INDEX_BYTES" \
   "LEGACY_VIDEO_BYTES=$VIDEO_BYTES" \
   "LEGACY_CORE_TOTAL_BYTES=$TOTAL_BYTES" \
+  "LEGACY_FULL_DIR_BYTES=$FULL_DIR_BYTES" \
   "LEGACY_BACKUP=$LEGACY_BACKUP" \
   "TARGET_URL=$TARGET_URL" \
   "TARGET_HTTP_STATUS=$HTTP_STATUS" \

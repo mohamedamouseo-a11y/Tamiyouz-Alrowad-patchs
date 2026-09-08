@@ -53,7 +53,6 @@ def main():
 
     helper = helper_path.read_text(encoding="utf-8")
     required = [
-        "join-us-wp-bootstrap-v5-",
         "page_template_meta' => (string) get_post_meta($p->ID, '_wp_page_template', true)",
         "$state = ['had_existing_page' => (bool) $existing, 'before' => ju_snapshot($existing), 'created_page_id' => null];",
         "if (!add_option($stateKey, $state, '', false)) ju_out(['success' => false, 'error' => 'failed_to_save_migration_state'], 500);",
@@ -118,6 +117,8 @@ def main():
     manifest["page_file_sha256"] = sha256_bytes(page_path.read_bytes())
     manifest["page_file_bytes"] = len(page_path.read_bytes())
     manifest["page_signature"] = V6_SIGNATURE
+    if isinstance(manifest.get("state_key"), str):
+        manifest["state_key"] = manifest["state_key"].replace("_tamiyouz_join_us_migration_v5_", "_tamiyouz_join_us_migration_v6_", 1)
     manifest["template_meta_strategy"] = "DELETE_DURING_PREPARE_AND_ACTIVATE;RESTORE_PREVIOUS_VALUE_ON_ROLLBACK"
     manifest["changes"] = list(manifest.get("changes", [])) + [
         "Clear stale _wp_page_template during prepare after snapshot.",

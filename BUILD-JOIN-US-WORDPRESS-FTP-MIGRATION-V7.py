@@ -66,7 +66,6 @@ def main():
 
     helper = helper_path.read_text(encoding="utf-8")
     required = [
-        "join-us-wp-bootstrap-v6-",
         "delete_post_meta($pageId, '_wp_page_template');",
         "delete_post_meta($p->ID, '_wp_page_template');",
         "failed_to_clear_stale_page_template_meta_prepare",
@@ -78,7 +77,6 @@ def main():
     if missing:
         raise SystemExit(f"Unexpected V6 helper revision; missing markers: {missing}")
 
-    # Add small helper functions immediately before runtime theme inspection.
     runtime_anchor = "$theme = (string) get_option('stylesheet');"
     if helper.count(runtime_anchor) != 1:
         raise SystemExit("Unexpected runtime anchor count")
@@ -118,7 +116,6 @@ function ju_purge_litespeed_all() {
 '''
     helper = helper.replace(runtime_anchor, cache_functions + runtime_anchor, 1)
 
-    # Make inspect expose cache capability only (no mutation).
     inspect_anchor = "        'state_exists' => (get_option($stateKey, null) !== null),"
     if helper.count(inspect_anchor) != 1:
         raise SystemExit("Unexpected inspect anchor count")
@@ -128,7 +125,6 @@ function ju_purge_litespeed_all() {
         1,
     )
 
-    # Purge the specific Join Us URL/post immediately after activate+rewrite flush.
     activate_anchor = """    flush_rewrite_rules(false);
     clean_post_cache($p->ID);
     ju_out(['success' => true, 'action' => 'activate', 'page' => ju_snapshot(get_post($p->ID)), 'url_to_postid' => (int) url_to_postid(home_url('/join-us/'))]);"""
@@ -140,7 +136,6 @@ function ju_purge_litespeed_all() {
         raise SystemExit("Unexpected activate cache anchor count")
     helper = helper.replace(activate_anchor, activate_replacement, 1)
 
-    # Add explicit cache actions. purge_cache is targeted; purge_all_cache is fallback only.
     cleanup_anchor = "if ($action === 'cleanup') {"
     if helper.count(cleanup_anchor) != 1:
         raise SystemExit("Unexpected cleanup anchor count")
@@ -155,7 +150,6 @@ if ($action === 'purge_all_cache') {
 '''
     helper = helper.replace(cleanup_anchor, cache_actions + cleanup_anchor, 1)
 
-    helper = helper.replace("join-us-wp-bootstrap-v6-", "join-us-wp-bootstrap-v7-", 1)
     helper = helper.replace("_tamiyouz_join_us_migration_v6_", "_tamiyouz_join_us_migration_v7_", 1)
 
     new_helper_name = helper_name.replace("join-us-wp-bootstrap-v6-", "join-us-wp-bootstrap-v7-", 1)
